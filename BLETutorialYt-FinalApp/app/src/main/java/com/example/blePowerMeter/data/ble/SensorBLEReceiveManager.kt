@@ -23,12 +23,13 @@ class SensorBLEReceiveManager @Inject constructor(
     private val bluetoothAdapter: BluetoothAdapter,
     private val context: Context
 ) : SensorReceiveManager {
-
+    //CHECK FOR SPECS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     private val DEVICE_NAME = "BLE_Sensor"
     private val SENSOR_SERVICE_UIID = "19B10010-E8F2-537E-4F6C-D104768A1214"
     private val SENSOR_CHARACTERISTICS_UUID = "19B10011-E8F2-537E-4F6C-D104768A1214"
 
-    override val data: MutableSharedFlow<Resource<SensorResult>> = MutableSharedFlow()
+    override val data: MutableSharedFlow<Resource<SensorResult>>
+    get() = MutableSharedFlow()
 
     private val bleScanner by lazy {
         bluetoothAdapter.bluetoothLeScanner
@@ -92,7 +93,7 @@ class SensorBLEReceiveManager @Inject constructor(
                     startReceiving()
                 }else{
                     coroutineScope.launch {
-                        data.emit(Resource.Error(errorMessage = "Could not connect to ble device"))
+                        data.emit(Resource.Error(errorMessage = "Could not connect to BLE device"))
                     }
                 }
             }
@@ -126,11 +127,11 @@ class SensorBLEReceiveManager @Inject constructor(
             with(characteristic){
                 when(uuid){
                     UUID.fromString(SENSOR_CHARACTERISTICS_UUID) -> {
-                        //XX XX XX XX XX XX
+                        //XX XX XX XX XX XX CHECK FOR SPECS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                         val multiplicator = if(value.first().toInt()> 0) -1 else 1
                         val force = value[1].toInt() + value[2].toInt() / 10f
                         val angle = value[4].toInt() + value[5].toInt() / 10f
-                        val acceleration = value[4].toInt() + value[5].toInt() / 10f
+                        val acceleration = value[7].toInt() + value[8].toInt() / 10f
                         val sensorResult = SensorResult(
                             multiplicator * force,
                             angle, acceleration,

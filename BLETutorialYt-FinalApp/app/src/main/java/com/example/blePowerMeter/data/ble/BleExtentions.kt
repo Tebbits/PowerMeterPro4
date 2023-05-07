@@ -5,7 +5,7 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.util.Log
 import java.util.*
-
+//CHECK FOR SPECS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 const val CCCD_DESCRIPTOR_UUID = "00002902-0000-1000-8000-00805F9B34FB"
 
 fun BluetoothGatt.printGattTable() {
