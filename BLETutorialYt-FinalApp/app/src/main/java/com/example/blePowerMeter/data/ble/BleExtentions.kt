@@ -10,7 +10,7 @@ const val CCCD_DESCRIPTOR_UUID = "00002902-0000-1000-8000-00805f9b34fb"
 
 fun BluetoothGatt.printGattTable() {
     if (services.isEmpty()) {
-        Log.d("BluetoothGatt","No service and characteristic available, call discoverServices() first?")
+        Log.i("BluetoothGatt","No service and characteristic available, call discoverServices() first?")
         return
     }
     services.forEach { service ->
@@ -29,7 +29,7 @@ fun BluetoothGatt.printGattTable() {
             }
             description
         }
-        Log.d("BluetoothGatt","Service ${service.uuid}\nCharacteristics:\n$characteristicsTable")
+        Log.i("printGattTable","\nService ${service.uuid}\nCharacteristics:\n$characteristicsTable")
     }
 }
 fun BluetoothGattCharacteristic.printProperties(): String = mutableListOf<String>().apply {

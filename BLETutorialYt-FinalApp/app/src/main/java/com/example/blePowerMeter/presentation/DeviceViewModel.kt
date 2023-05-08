@@ -38,10 +38,10 @@ class DeviceViewModel @Inject constructor(
             sensorReceiveManager.data.collect{ result ->
                 when(result){
                     is Resource.Success -> {
-                        connectionState = result.data.connectionState
                         force = result.data.force
                         angle = result.data.angle
                         acceleration = result.data.acceleration
+                        connectionState = result.data.connectionState
 
                     }
 
