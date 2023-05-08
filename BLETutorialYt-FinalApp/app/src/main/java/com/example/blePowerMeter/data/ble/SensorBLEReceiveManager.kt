@@ -24,9 +24,9 @@ class SensorBLEReceiveManager @Inject constructor(
     private val context: Context
 ) : SensorReceiveManager {
     //CHECK FOR SPECS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    private val DEVICE_NAME = "BLE_Sensor"
-    private val SENSOR_SERVICE_UIID = "19B10010-E8F2-537E-4F6C-D104768A1214"
-    private val SENSOR_CHARACTERISTICS_UUID = "19B10011-E8F2-537E-4F6C-D104768A1214"
+    val DEVICE_NAME = "BLE_Sensor"
+    val SENSOR_SERVICE_UIID = "19b10010-e8f2-537E-4f6c-d104768a1214"
+    val SENSOR_CHARACTERISTICS_UUID = "19b10011-e8f2-537E-4f6c-d104768a1214"
 
     override val data: MutableSharedFlow<Resource<SensorResult>> = MutableSharedFlow()
 
@@ -104,7 +104,7 @@ class SensorBLEReceiveManager @Inject constructor(
                 coroutineScope.launch {
                     data.emit(Resource.Loading(message = "Adjusting MTU space..."))
                 }
-                gatt.requestMtu(517)
+                gatt.requestMtu(23)
             }
         }
 
