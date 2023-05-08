@@ -28,8 +28,7 @@ class SensorBLEReceiveManager @Inject constructor(
     private val SENSOR_SERVICE_UIID = "19B10010-E8F2-537E-4F6C-D104768A1214"
     private val SENSOR_CHARACTERISTICS_UUID = "19B10011-E8F2-537E-4F6C-D104768A1214"
 
-    override val data: MutableSharedFlow<Resource<SensorResult>>
-    get() = MutableSharedFlow()
+    override val data: MutableSharedFlow<Resource<SensorResult>> = MutableSharedFlow()
 
     private val bleScanner by lazy {
         bluetoothAdapter.bluetoothLeScanner
