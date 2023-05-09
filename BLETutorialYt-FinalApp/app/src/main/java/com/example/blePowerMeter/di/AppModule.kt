@@ -25,9 +25,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideTempHumidityReceiveManager(
-        @ApplicationContext context: Context,
-        bluetoothAdapter: BluetoothAdapter
+    fun provideSensorReceiveManager(@ApplicationContext context: Context, bluetoothAdapter: BluetoothAdapter
     ):SensorReceiveManager{
         return SensorBLEReceiveManager(bluetoothAdapter,context)
     }
