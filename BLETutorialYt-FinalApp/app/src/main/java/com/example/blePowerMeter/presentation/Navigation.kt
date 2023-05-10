@@ -12,7 +12,11 @@ fun Navigation(
 
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = Screen.StartScreen.route){
+    NavHost(navController = navController, startDestination = Screen.HomeScreen.route){
+        composable(Screen.HomeScreen.route){
+            HomeScreen(navController = navController)
+        }
+        
         composable(Screen.StartScreen.route){
             StartScreen(navController = navController)
         }
@@ -29,4 +33,5 @@ fun Navigation(
 sealed class Screen(val route:String){
     object StartScreen:Screen("start_screen")
     object DeviceScreen:Screen("device_screen")
+    object HomeScreen:Screen("home_screen")
 }

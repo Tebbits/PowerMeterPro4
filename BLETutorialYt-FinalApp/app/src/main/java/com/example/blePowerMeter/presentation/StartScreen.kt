@@ -26,14 +26,15 @@ fun StartScreen(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ){
+        TopBar(navController = navController)
         Box(
             modifier = Modifier
                 .size(150.dp)
                 .clip(CircleShape)
                 .background(Color.Blue, CircleShape)
                 .clickable {
-                    navController.navigate(Screen.DeviceScreen.route){
-                        popUpTo(Screen.StartScreen.route){
+                    navController.navigate(Screen.DeviceScreen.route) {
+                        popUpTo(Screen.StartScreen.route) {
                             inclusive = true
                         }
                     }

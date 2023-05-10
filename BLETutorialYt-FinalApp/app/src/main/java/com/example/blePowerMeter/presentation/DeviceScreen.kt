@@ -24,6 +24,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import com.example.blePowerMeter.data.ConnectionState
 import com.example.blePowerMeter.presentation.permissions.PermissionUtils
 import com.example.blePowerMeter.presentation.permissions.SystemBroadcastReceiver
+import com.example.blePowerMeter.ui.theme.Teal
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 
@@ -88,7 +89,7 @@ fun DeviceScreen(
                 .aspectRatio(1f)
                 .border(
                     BorderStroke(
-                        5.dp, Color.Blue
+                        5.dp, Teal
                     ),
                     RoundedCornerShape(10.dp)
                 ),
