@@ -23,7 +23,8 @@ fun Navigation(
 
         composable(Screen.DeviceScreen.route){
             DeviceScreen(
-                onBluetoothStateChanged
+                onBluetoothStateChanged,
+                navController = navController
             )
         }
     }

@@ -2,10 +2,9 @@ package com.example.blePowerMeter.presentation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.blePowerMeter.ui.theme.Teal
 
 @Composable
 fun StartScreen(
@@ -24,32 +24,39 @@ fun StartScreen(
 
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ){
-        TopBar(navController = navController)
-        Box(
-            modifier = Modifier
-                .size(150.dp)
-                .clip(CircleShape)
-                .background(Color.Blue, CircleShape)
-                .clickable {
-                    navController.navigate(Screen.DeviceScreen.route) {
-                        popUpTo(Screen.StartScreen.route) {
-                            inclusive = true
-                        }
-                    }
-                },
-            contentAlignment = Alignment.Center
-        ){
-            Text(
-                text = "Start",
-                fontSize = 35.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
+    ) {
+        Column {
+            TopBar(navController = navController)
+            Spacer(modifier = Modifier.height(50.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Box(
+                    modifier = Modifier
+                        .width(250.dp)
+                        .height(100.dp)
+                        .clip(RoundedCornerShape(size = 16.dp,))
+                        .background(Teal, RoundedCornerShape(size = 16.dp,))
+                        .clickable {
+                            navController.navigate(Screen.DeviceScreen.route) {
+                                popUpTo(Screen.StartScreen.route) {
+                                    inclusive = true
+                                }
+                            }
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Pair Device",
+                        fontSize = 35.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+            }
         }
     }
-
 }
 
 

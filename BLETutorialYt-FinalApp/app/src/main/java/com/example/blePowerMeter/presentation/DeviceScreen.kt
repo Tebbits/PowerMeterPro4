@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.navigation.NavController
 import com.example.blePowerMeter.data.ConnectionState
 import com.example.blePowerMeter.presentation.permissions.PermissionUtils
 import com.example.blePowerMeter.presentation.permissions.SystemBroadcastReceiver
@@ -32,7 +33,8 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 @Composable
 fun DeviceScreen(
     onBluetoothStateChanged:()->Unit,
-    viewModel: DeviceViewModel = hiltViewModel()
+    viewModel: DeviceViewModel = hiltViewModel(),
+    navController: NavController
 ) {
 
     SystemBroadcastReceiver(systemAction = BluetoothAdapter.ACTION_STATE_CHANGED){ bluetoothState ->
@@ -81,8 +83,14 @@ fun DeviceScreen(
     Box(
         modifier = Modifier
             .fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.TopStart
     ){
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            TopBar(navController = navController)
+            Spacer(modifier = Modifier.height(50.dp))
         Column(
             modifier = Modifier
                 .fillMaxWidth(0.6f)
@@ -165,7 +173,7 @@ fun DeviceScreen(
                 }
             }
         }
-    }
+    }}
 
 }
 
