@@ -28,10 +28,12 @@ class DeviceViewModel @Inject constructor(
 
     var angle by mutableStateOf(0f)
         private set
-    var acceleration by mutableStateOf(0f)
+    var cadence by mutableStateOf(0f)
         private set
 
     var connectionState by mutableStateOf<ConnectionState>(ConnectionState.Uninitialized)
+
+
 
     private fun subscribeToChanges(){
         viewModelScope.launch {
@@ -40,7 +42,7 @@ class DeviceViewModel @Inject constructor(
                     is Resource.Success -> {
                         force = result.data.force
                         angle = result.data.angle
-                        acceleration = result.data.acceleration
+                        cadence = result.data.cadence
                         connectionState = result.data.connectionState
 
                     }
@@ -48,6 +50,7 @@ class DeviceViewModel @Inject constructor(
                     is Resource.Loading -> {
                         initializingMessage = result.message
                         connectionState = ConnectionState.CurrentlyInitializing
+
                     }
 
                     is Resource.Error -> {

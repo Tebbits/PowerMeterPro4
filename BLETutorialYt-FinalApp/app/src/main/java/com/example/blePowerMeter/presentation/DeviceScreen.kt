@@ -173,7 +173,7 @@ fun DeviceScreen(
                                 style = MaterialTheme.typography.h6
                             )
                             Text(
-                                text = "Acceleration: ${viewModel.acceleration}",
+                                text = "Acceleration: ${viewModel.cadence}",
                                 style = MaterialTheme.typography.h6
                             )
                         }
@@ -191,57 +191,6 @@ fun DeviceScreen(
 
 }
 
-
-@Composable
-fun SensorReading(
-    force: DeviceViewModel,
-    angle: DeviceViewModel,
-    cadence: DeviceViewModel,
-
-    ) {
-    Box(
-        modifier = Modifier
-            .size(250.dp, 200.dp)
-            .background(Purple500)
-            .padding(40.dp),
-        contentAlignment = Alignment.TopStart
-    ) {
-        Column {
-            Text(text = "Sensor Measurement")
-            Spacer(modifier = Modifier.height(25.dp))
-            SensorBox(force,Teal,"Force")
-            SensorBox(measurement = angle, color = Teal, text = "Angle")
-            SensorBox(measurement = cadence, color = Teal, text = "Cadence")
-
-        }
-
-    }}
-
-    @Composable
-    fun SensorBox(
-        measurement: DeviceViewModel,
-        color: Color,
-        text: String
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(color)
-                .border(
-                    BorderStroke(
-                        5.dp, Teal
-                    ),
-                    RoundedCornerShape(10.dp)
-                ),
-
-            ) {
-            Row() {
-                val spacer: String = ":                "
-                Text(text = text + spacer + measurement)
-            }
-        }
-
-    }
 
 
 

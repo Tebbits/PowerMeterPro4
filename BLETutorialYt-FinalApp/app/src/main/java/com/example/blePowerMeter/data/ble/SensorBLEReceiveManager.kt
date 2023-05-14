@@ -100,7 +100,7 @@ class SensorBLEReceiveManager @Inject constructor(
         }
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
 
-            with(gatt){
+            with(gatt) {
 
                 printGattTable()
                 coroutineScope.launch {
@@ -108,75 +108,37 @@ class SensorBLEReceiveManager @Inject constructor(
                 }
                 gatt.requestMtu(23)
             }
+        }
+
+        override fun onMtuChanged(gatt: BluetoothGatt?, mtu: Int, status: Int) {
             val characteristic = findCharacteristics(SENSOR_SERVICE_UIID, SENSOR_CHARACTERISTICS_UUID)
             if(characteristic == null){
                 coroutineScope.launch {
                     data.emit(Resource.Error(errorMessage = "Could not find sensor publisher"))
                 }
                 return
-
             }
-            else if(characteristic != null) {coroutineScope.launch {
-                data.emit(Resource.Loading(message =  "Finding characteristics"))}
-            }
-
-
-                enableNotification(characteristic)
-            onCharacteristicChanged(gatt,characteristic)
-
-        }
-        private fun enableNotification(characteristic: BluetoothGattCharacteristic){
-            coroutineScope.launch {
-                data.emit(Resource.Loading(message =  "starting notify"))}
-            val cccdUuid = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
-            val payload = when {
-                characteristic.isIndicatable() -> BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
-                characteristic.isNotifiable() -> BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-                else -> return
-
-            }
-            coroutineScope.launch {
-                data.emit(Resource.Loading(message =  "notifiable $cccdUuid"))}
-
-            characteristic.getDescriptor(cccdUuid)?.let { cccdDescriptor ->
-                if(gatt?.setCharacteristicNotification(characteristic, true) == false){
-                    Log.d("BLEReceiveManager", "set characteristics notification failed")
-                    return
-                }
-                coroutineScope.launch {
-                    data.emit(Resource.Loading(message =  "write descriptor starting"))}
-                writeDescription(cccdDescriptor, payload)
-            }
-        }
-
-        override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
-                Log.d("BLEReceiveManager", "MTU changed to $mtu")
-
+            enableNotification(characteristic)
         }
 
         override fun onCharacteristicChanged(
-
             gatt: BluetoothGatt,
             characteristic: BluetoothGattCharacteristic
         ) {
-            coroutineScope.launch {
-                data.emit(Resource.Loading(message =  "onCharacteristicsChanged"))}
-
-            with(characteristic){
-                when(uuid){
-
+            with(characteristic) {
+                when(uuid) {
                     UUID.fromString(SENSOR_CHARACTERISTICS_UUID) -> {
+
                         val rawData = characteristic.value
+                        val force = rawData[1].toFloat()
+                        val angle = 13f
+                        val acceleration = 13f
+
                         val sensorResult = SensorResult(
-                            force = rawData[1].toFloat(),
-                            angle = rawData[4].toFloat(),
-                            acceleration = rawData[7].toFloat(),
-                            connectionState = ConnectionState.Connected
+                            force, angle, acceleration, ConnectionState.Connected
                         )
                         coroutineScope.launch {
-                            data.emit(
-                                Resource.Success(data = sensorResult)
-                            )
+                            data.emit(Resource.Success(data = sensorResult))
                         }
                     }
                     else -> Unit
@@ -184,15 +146,45 @@ class SensorBLEReceiveManager @Inject constructor(
             }
         }
 
+
+
+
+
+
+
     }
 
+    private fun enableNotification(characteristic: BluetoothGattCharacteristic){
+
+        val cccdUuid = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
+        val payload = when {
+            characteristic.isIndicatable() -> BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
+            characteristic.isNotifiable() -> BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+            else -> return
+
+        }
+
+
+        characteristic.getDescriptor(cccdUuid)?.let { cccdDescriptor ->
+            if(gatt?.setCharacteristicNotification(characteristic, true) == false){
+                Log.d("BLEReceiveManager", "set characteristics notification failed")
+                return
+            }
+            writeDescription(cccdDescriptor, payload)
+
+
+        }
+
+    }
 
 
     private fun writeDescription(descriptor: BluetoothGattDescriptor, payload: ByteArray){
         gatt?.let { gatt ->
             descriptor.value = payload
             gatt.writeDescriptor(descriptor)
+
         } ?: error("Not connected to a BLE device!")
+
     }
 
     private fun findCharacteristics(serviceUUID: String, characteristicsUUID:String):BluetoothGattCharacteristic?{

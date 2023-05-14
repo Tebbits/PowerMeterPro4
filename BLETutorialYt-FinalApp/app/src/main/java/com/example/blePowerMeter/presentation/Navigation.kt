@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.blePowerMeter.presentation.permissions.SensorScreen
 
 @Composable
 fun Navigation(
@@ -27,6 +28,12 @@ fun Navigation(
                 navController = navController
             )
         }
+        composable(Screen.SensorScreen.route){
+            SensorScreen(
+                onBluetoothStateChanged,
+                navController = navController,
+            )
+        }
     }
 
 }
@@ -35,4 +42,5 @@ sealed class Screen(val route:String){
     object StartScreen:Screen("start_screen")
     object DeviceScreen:Screen("device_screen")
     object HomeScreen:Screen("home_screen")
+    object SensorScreen:Screen("sensor_screen")
 }
