@@ -3,18 +3,24 @@ package com.example.blePowerMeter.presentation
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.blePowerMeter.data.ConnectionState
 import com.example.blePowerMeter.data.SensorReceiveManager
+import com.example.blePowerMeter.data.SensorResult
 import com.example.blePowerMeter.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class DeviceViewModel @Inject constructor(
-    private val sensorReceiveManager: SensorReceiveManager
+    private var sensorReceiveManager: SensorReceiveManager
 ) : ViewModel(){
 
     var initializingMessage by mutableStateOf<String?>(null)
@@ -32,7 +38,6 @@ class DeviceViewModel @Inject constructor(
         private set
 
     var connectionState by mutableStateOf<ConnectionState>(ConnectionState.Uninitialized)
-
 
 
     private fun subscribeToChanges(){
@@ -82,4 +87,17 @@ class DeviceViewModel @Inject constructor(
     }
 
 
+    fun startReceiving() {
+        viewModelScope.launch {
+            sensorReceiveManager.startReceiving()
+        }
+    }
+
+    fun stopReceiving() {
+        viewModelScope.launch {
+            sensorReceiveManager.stopReceiving()
+        }
+    }
+
 }
+

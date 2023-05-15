@@ -232,5 +232,12 @@ class SensorBLEReceiveManager @Inject constructor(
             writeDescription(cccdDescriptor, BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE)
         }
     }
+    override fun stopReceiving() {
+        if (isScanning) {
+            isScanning = false
+            bleScanner.stopScan(scanCallback)
+        }
+    }
+
 
 }

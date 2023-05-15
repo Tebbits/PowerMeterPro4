@@ -15,4 +15,8 @@ interface SensorReceiveManager {
 
     fun closeConnection()
 
+    fun stopReceiving()
+
+
+
 }
