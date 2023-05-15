@@ -7,6 +7,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.blePowerMeter.data.ConnectionState
 import com.example.blePowerMeter.data.SensorReceiveManager
 import com.example.blePowerMeter.data.SensorResult
@@ -16,29 +17,20 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
+import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
 class DeviceViewModel @Inject constructor(
-    private var sensorReceiveManager: SensorReceiveManager
-) : ViewModel(){
+    private val sensorReceiveManager: SensorReceiveManager
+) : ViewModel() {
 
-    var initializingMessage by mutableStateOf<String?>(null)
-        private set
-
-    var errorMessage by mutableStateOf<String?>(null)
-        private set
-
-    var force by mutableStateOf(0f)
-        private set
-
-    var angle by mutableStateOf(0f)
-        private set
-    var cadence by mutableStateOf(0f)
-        private set
-
-    var connectionState by mutableStateOf<ConnectionState>(ConnectionState.Uninitialized)
-
+    var force: Float = 0f
+    var angle: Float = 0f
+    var cadence: Float = 0f
+    var connectionState: ConnectionState = ConnectionState.Uninitialized
+    var initializingMessage: String? = null
+    var errorMessage: String? = null
 
     private fun subscribeToChanges(){
         viewModelScope.launch {
@@ -84,9 +76,8 @@ class DeviceViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         sensorReceiveManager.closeConnection()
+        timer.cancel()
     }
-
-
     fun startReceiving() {
         viewModelScope.launch {
             sensorReceiveManager.startReceiving()
@@ -99,5 +90,34 @@ class DeviceViewModel @Inject constructor(
         }
     }
 
+    private val _force = MutableLiveData<Float>()
+    var forceData: LiveData<Float> = _force
+
+    private val _chartData = MutableLiveData<List<ChartData>>(emptyList())
+    val chartData: LiveData<List<ChartData>> = _chartData
+
+    private val timer = Timer()
+
+    init {
+        timer.scheduleAtFixedRate(object : TimerTask() {
+            override fun run() {
+                val forceValue = readSensor()
+                _force.postValue(forceValue)
+                _chartData.postValue(
+                    _chartData.value.orEmpty() + ChartData(System.currentTimeMillis(), forceValue)
+                )
+            }
+        }, 0L, 100L)
+    }
+
+    private fun readSensor(): Float {
+        return force
+    }
+
+    data class ChartData(
+        val timestamp: Long,
+        val forceValue: Float
+    )
 }
+
 

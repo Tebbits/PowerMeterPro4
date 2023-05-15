@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.blePowerMeter.presentation.permissions.NewWorkoutScreen
 import com.example.blePowerMeter.presentation.permissions.SensorScreen
 
 @Composable
@@ -34,6 +35,12 @@ fun Navigation(
                 navController = navController,
             )
         }
+        composable(Screen.NewWorkoutScreen.route){
+            NewWorkoutScreen(
+
+                navController = navController,
+            )
+        }
     }
 
 }
@@ -43,4 +50,5 @@ sealed class Screen(val route:String){
     object DeviceScreen:Screen("device_screen")
     object HomeScreen:Screen("home_screen")
     object SensorScreen:Screen("sensor_screen")
+    object NewWorkoutScreen:Screen("newWorkout_screen")
 }

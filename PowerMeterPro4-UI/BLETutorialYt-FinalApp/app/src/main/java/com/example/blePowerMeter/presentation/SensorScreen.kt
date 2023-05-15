@@ -1,12 +1,12 @@
 package com.example.blePowerMeter.presentation.permissions
 
 import android.bluetooth.BluetoothAdapter
+import android.graphics.Paint
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -28,18 +29,16 @@ import androidx.navigation.NavController
 import com.example.blePowerMeter.data.ConnectionState
 import com.example.blePowerMeter.presentation.DeviceViewModel
 import com.example.blePowerMeter.presentation.TopBar
-import com.example.blePowerMeter.ui.theme.BackgroundColor
-import com.example.blePowerMeter.ui.theme.Teal
+import com.example.blePowerMeter.ui.theme.Purple200
+import com.example.blePowerMeter.ui.theme.Teal200
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import android.graphics.Paint
-import com.example.blePowerMeter.ui.theme.Purple200
-import com.example.blePowerMeter.ui.theme.Purple500
 import kotlin.math.abs
+import com.example.blePowerMeter.ui.theme.Gray300
 
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -63,29 +62,26 @@ fun SensorScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     val bleConnectionState = viewModel.connectionState
 
-    DisposableEffect(
-        key1 = lifecycleOwner,
-        effect = {
-            val observer = LifecycleEventObserver { _, event ->
-                if (event == Lifecycle.Event.ON_START) {
-                    permissionState.launchMultiplePermissionRequest()
-                    if (permissionState.allPermissionsGranted && bleConnectionState == ConnectionState.Disconnected) {
-                        viewModel.reconnect()
-                    }
-                }
-                if (event == Lifecycle.Event.ON_STOP) {
-                    if (bleConnectionState == ConnectionState.Connected) {
-                        viewModel.disconnect()
-                    }
+    DisposableEffect(key1 = lifecycleOwner, effect = {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_START) {
+                permissionState.launchMultiplePermissionRequest()
+                if (permissionState.allPermissionsGranted && bleConnectionState == ConnectionState.Disconnected) {
+                    viewModel.reconnect()
                 }
             }
-            lifecycleOwner.lifecycle.addObserver(observer)
-
-            onDispose {
-                lifecycleOwner.lifecycle.removeObserver(observer)
+            if (event == Lifecycle.Event.ON_STOP) {
+                if (bleConnectionState == ConnectionState.Connected) {
+                    viewModel.disconnect()
+                }
             }
         }
-    )
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    })
 
     LaunchedEffect(key1 = permissionState.allPermissionsGranted) {
         if (permissionState.allPermissionsGranted) {
@@ -98,59 +94,56 @@ fun SensorScreen(
 
     Box(
         modifier = Modifier
-            .fillMaxSize(),
-        contentAlignment = Alignment.TopStart
+            .fillMaxSize()
+            .background(Gray300), contentAlignment = Alignment.TopStart
     ) {
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             TopBar(navController = navController)
-            Spacer(modifier = Modifier.height(10.dp))
 
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(80.dp)
-                .padding(10.dp)
-                .border(
-                    BorderStroke(
-                        5.dp, Teal
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.dp)
+                    .padding(10.dp)
+                    .border(
+                        BorderStroke(
+                            3.dp, Teal200
+                        ), RoundedCornerShape(10.dp)
                     ),
-                    RoundedCornerShape(10.dp)
-                ),
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxSize()
             ) {
-                Text(
-                    text = "Device connection",
-                    style = MaterialTheme.typography.h6,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(10.dp)
-                )
-                if (bleConnectionState == ConnectionState.Uninitialized) {
-                    Button(modifier = Modifier.padding(10.dp),
-                        onClick = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Text(
+                        text = "Device connection",
+                        style = MaterialTheme.typography.h6,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(10.dp)
+                    )
+                    if (bleConnectionState == ConnectionState.Uninitialized) {
+                        Button(modifier = Modifier.padding(10.dp), onClick = {
                             if (permissionState.allPermissionsGranted) {
                                 viewModel.initializeConnection()
                             }
+                        }) {
+                            Text(text = "Connect")
                         }
-                    ) {
-                        Text(text = "Connect")
+                    } else {
+                        Text(
+                            text = "Connected",
+                            style = MaterialTheme.typography.body1,
+                            modifier = Modifier.padding(end = 16.dp)
+                        )
                     }
-                } else {
-                    Text(
-                        text = "Connected",
-                        style = MaterialTheme.typography.body1,
-                        modifier = Modifier.padding(end = 16.dp)
-                    )
                 }
             }
-        }
 
 
 
@@ -158,9 +151,7 @@ fun SensorScreen(
 
 
             SensorReading(
-                force = viewModel.force,
-                angle = viewModel.angle,
-                cadence = viewModel.cadence
+                force = viewModel.force, angle = viewModel.angle, cadence = viewModel.cadence
             )
             CalibrationBox(viewModel = viewModel)
         }
@@ -180,77 +171,85 @@ fun SensorReading(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(BackgroundColor)
+            .background(Gray300)
             .padding(horizontal = 10.dp, vertical = 8.dp)
-            .border(5.dp, Teal, RoundedCornerShape(10.dp))
+            .border(3.dp, Teal200, RoundedCornerShape(10.dp))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(10.dp)
         ) {
             Text(
                 text = "Sensor Measurement",
-                style = MaterialTheme.typography.h6
+                style = MaterialTheme.typography.h6,
+                textAlign = TextAlign . Center ,
+                modifier = Modifier.fillMaxWidth()
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            SensorBox(
-                measurement = force,
-                color = Color(0xFFB2DFDB),
-                text = "Force"
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            SensorBox(
-                measurement = angle,
-                color = Color(0xFF80CBC4),
-                text = "Angle"
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            SensorBox(
-                measurement = cadence,
-                color = Color(0xFF4DB6AC),
-                text = "Cadence"
-            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                SensorBox(
+                    measurement = force,
+                    color = Color(0xFFB2DFDB),
+                    text = "Force",
+
+                    )
+                Spacer(modifier = Modifier.width(10.dp))
+                SensorBox(
+                    measurement = angle,
+                    color = Color(0xFF80CBC4),
+                    text = "Angle",
+
+                    )
+                Spacer(modifier = Modifier.width(10.dp))
+                SensorBox(
+                    measurement = cadence,
+                    color = Color(0xFF4DB6AC),
+                    text = "Cadence",
+
+                    )
+            }
         }
     }
 }
 
 @Composable
 fun SensorBox(
-    measurement: Float,
-    color: Color,
-    text: String
+    measurement: Float, color: Color, text: String
 ) {
     Box(
         modifier = Modifier
-            .fillMaxWidth()
+            .width(100.dp)
             .clip(RoundedCornerShape(10.dp))
             .background(color)
-
+            .height(80.dp)
             .border(
                 BorderStroke(
-                    2.dp,
-                    Color(0xFF009688)
-                ),
-                RoundedCornerShape(10.dp)
+                    2.dp, Color(0xFF009688)
+                ), RoundedCornerShape(10.dp)
             ),
-        contentAlignment = Alignment.CenterStart
+        contentAlignment = Alignment.Center
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp)
-
+        Column(
+            modifier = Modifier.padding(8.dp)
         ) {
             Text(
-                text = "$text: ",
+                text = text,
                 style = MaterialTheme.typography.subtitle1
             )
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = measurement.toString(),
-                style = MaterialTheme.typography.subtitle1
+                style = MaterialTheme.typography.h5
             )
         }
     }
 }
+
+
 @Composable
 fun CalibrationBox(viewModel: DeviceViewModel) {
     var weight by remember { mutableStateOf(0f) }
@@ -259,8 +258,7 @@ fun CalibrationBox(viewModel: DeviceViewModel) {
     var isCalibrating by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Input weight and start calibration
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -283,8 +281,7 @@ fun CalibrationBox(viewModel: DeviceViewModel) {
                             viewModel.stopReceiving()
                             calibrationFactor = sensorValues.maxOrNull()?.div(weight) ?: 1f
                         }
-                    },
-                    enabled = !isCalibrating
+                    }, enabled = !isCalibrating
                 ) {
                     Text("Calibrate")
                 }
@@ -368,10 +365,7 @@ fun LineChart(data: List<Float>, modifier: Modifier = Modifier) {
                     color = 5
                 }
                 canvas.nativeCanvas.drawText(
-                    label,
-                    0f,
-                    labelY,
-                    paint
+                    label, 0f, labelY, paint
                 )
             }
         }
