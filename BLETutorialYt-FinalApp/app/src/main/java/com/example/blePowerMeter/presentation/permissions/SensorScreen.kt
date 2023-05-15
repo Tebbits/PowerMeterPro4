@@ -1,7 +1,6 @@
 package com.example.blePowerMeter.presentation.permissions
 
 import android.bluetooth.BluetoothAdapter
-import android.os.CountDownTimer
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -9,34 +8,27 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PaintingStyle.Companion.Stroke
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import com.example.blePowerMeter.data.ConnectionState
 import com.example.blePowerMeter.presentation.DeviceViewModel
 import com.example.blePowerMeter.presentation.TopBar
-import com.example.blePowerMeter.presentation.permissions.PermissionUtils
-import com.example.blePowerMeter.presentation.permissions.SystemBroadcastReceiver
 import com.example.blePowerMeter.ui.theme.BackgroundColor
-import com.example.blePowerMeter.ui.theme.Purple200
-import com.example.blePowerMeter.ui.theme.Purple500
 import com.example.blePowerMeter.ui.theme.Teal
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
@@ -44,6 +36,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import android.graphics.Paint
+import com.example.blePowerMeter.ui.theme.Purple200
+import com.example.blePowerMeter.ui.theme.Purple500
+import kotlin.math.abs
+
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -261,7 +258,10 @@ fun CalibrationBox(viewModel: DeviceViewModel) {
     var sensorValues by remember { mutableStateOf(listOf<Float>()) }
     var isCalibrating by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         // Input weight and start calibration
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("Weight (kg): ")
@@ -272,22 +272,24 @@ fun CalibrationBox(viewModel: DeviceViewModel) {
             )
             Spacer(modifier = Modifier.width(16.dp)) // Add some space between the TextField and the Button
             if (viewModel.connectionState == ConnectionState.Connected) {
-                Button(onClick = {
-                    isCalibrating = true
-                    sensorValues = listOf()
-                    viewModel.startReceiving()
-                    CoroutineScope(Dispatchers.Main).launch {
-                        delay(10000L) // Wait for 10 seconds
-                        isCalibrating = false
-                        viewModel.stopReceiving()
-                        calibrationFactor = sensorValues.maxOrNull()?.div(weight) ?: 1f
-                    }
-                }) {
+                Button(
+                    onClick = {
+                        isCalibrating = true
+                        sensorValues = listOf()
+                        viewModel.startReceiving()
+                        CoroutineScope(Dispatchers.Main).launch {
+                            delay(10000L) // Wait for 10 seconds
+                            isCalibrating = false
+                            viewModel.stopReceiving()
+                            calibrationFactor = sensorValues.maxOrNull()?.div(weight) ?: 1f
+                        }
+                    },
+                    enabled = !isCalibrating
+                ) {
                     Text("Calibrate")
                 }
             }
         }
-        Spacer(modifier = Modifier.height(16.dp)) // Add some space between the input row and the sensor values
 
         // Show sensor values during calibration
         if (isCalibrating) {
@@ -297,12 +299,81 @@ fun CalibrationBox(viewModel: DeviceViewModel) {
                     delay(100L) // Collect sensor values every 100 milliseconds
                 }
             }
-            Text("Sensor values: ${sensorValues.joinToString()}")
+            Text(
+                "Calibrating...",
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+                modifier = Modifier.padding(vertical = 16.dp)
+            )
         }
 
-        Spacer(modifier = Modifier.height(16.dp)) // Add some space between the sensor values and the calibration factor
-
         // Show calibration result
-        Text("Calibration factor: $calibrationFactor")
+        if (!isCalibrating && calibrationFactor != 1f) {
+            LineChart(
+                data = sensorValues,
+                modifier = Modifier
+                    .height(200.dp)
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            )
+            Text(
+                "Calibration factor: $calibrationFactor",
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+                modifier = Modifier.padding(vertical = 16.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun LineChart(data: List<Float>, modifier: Modifier = Modifier) {
+    val maxValue = remember { data.map { abs(it) }.maxOrNull() ?: 0f }
+
+    Canvas(modifier) {
+        val canvasWidth = size.width
+        val canvasHeight = size.height
+        val barWidth = canvasWidth / (data.size - 1)
+
+        // Draw the bars
+        data.forEachIndexed { index, value ->
+            val barHeight = abs(value) / maxValue * canvasHeight
+            drawRect(
+                color = Purple200,
+                topLeft = Offset(index * barWidth, canvasHeight - barHeight),
+                size = Size(barWidth, barHeight)
+            )
+        }
+
+        // Draw the axis
+        drawLine(
+            color = Color.Black,
+            start = Offset(0f, canvasHeight),
+            end = Offset(canvasWidth, canvasHeight),
+            strokeWidth = 4f
+        )
+        drawLine(
+            color = Color.Black,
+            start = Offset(0f, 0f),
+            end = Offset(0f, canvasHeight),
+            strokeWidth = 4f
+        )
+
+        // Draw the y-axis labels
+        val yAxisLabels = listOf("0", "0.25", "0.5", "0.75", "1")
+        yAxisLabels.forEachIndexed { index, label ->
+            val labelY = index.toFloat() / (yAxisLabels.size - 1) * canvasHeight
+            drawIntoCanvas { canvas ->
+                val paint = Paint().apply {
+                    color = 5
+                }
+                canvas.nativeCanvas.drawText(
+                    label,
+                    0f,
+                    labelY,
+                    paint
+                )
+            }
+        }
     }
 }
