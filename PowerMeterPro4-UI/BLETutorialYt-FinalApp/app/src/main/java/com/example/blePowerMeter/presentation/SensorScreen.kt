@@ -127,7 +127,7 @@ fun SensorScreen(
                             .weight(1f)
                             .padding(10.dp)
                     )
-                    if (bleConnectionState == ConnectionState.Uninitialized) {
+                    if (bleConnectionState != ConnectionState.Disconnected) {
                         Button(modifier = Modifier.padding(10.dp), onClick = {
                             if (permissionState.allPermissionsGranted) {
                                 viewModel.initializeConnection()
@@ -153,7 +153,15 @@ fun SensorScreen(
             SensorReading(
                 force = viewModel.force, angle = viewModel.angle, cadence = viewModel.cadence
             )
-            CalibrationBox(viewModel = viewModel)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Gray300)
+                    .padding(horizontal = 10.dp, vertical = 8.dp)
+                    .border(3.dp, Teal200, RoundedCornerShape(10.dp))
+            ) {
+                CalibrationBox(viewModel = viewModel)
+            }
         }
 
     }
@@ -179,12 +187,15 @@ fun SensorReading(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(10.dp)
+
         ) {
             Text(
                 text = "Sensor Measurement",
                 style = MaterialTheme.typography.h6,
-                textAlign = TextAlign . Center ,
-                modifier = Modifier.fillMaxWidth()
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 5.dp)
             )
 
             Row(
@@ -234,7 +245,7 @@ fun SensorBox(
         contentAlignment = Alignment.Center
     ) {
         Column(
-            modifier = Modifier.padding(8.dp)
+            modifier = Modifier.padding(2.dp)
         ) {
             Text(
                 text = text,
@@ -260,16 +271,23 @@ fun CalibrationBox(viewModel: DeviceViewModel) {
     Column(
         modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Text(
+            text = "Device calibration",
+            style = MaterialTheme.typography.h6,
+            modifier = Modifier.padding(5.dp)
+        )
+        if (viewModel.connectionState == ConnectionState.Connected) {
         // Input weight and start calibration
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Weight (kg): ")
+
+                Text("Weight (kg): ")
             TextField(
                 value = weight.toString(),
                 onValueChange = { weight = it.toFloatOrNull() ?: 0f },
-                modifier = Modifier.width(64.dp) // Set the width of the TextField to 64 dp
+                modifier = Modifier.width(64.dp)
             )
-            Spacer(modifier = Modifier.width(16.dp)) // Add some space between the TextField and the Button
-            if (viewModel.connectionState == ConnectionState.Connected) {
+            Spacer(modifier = Modifier.width(16.dp))
+
                 Button(
                     onClick = {
                         isCalibrating = true
@@ -286,8 +304,13 @@ fun CalibrationBox(viewModel: DeviceViewModel) {
                     Text("Calibrate")
                 }
             }
-        }
 
+        Text(
+            "Calibration factor: $calibrationFactor",
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp,
+            modifier = Modifier.padding(vertical = 16.dp)
+        )}
         // Show sensor values during calibration
         if (isCalibrating) {
             LaunchedEffect(Unit) {
@@ -313,12 +336,7 @@ fun CalibrationBox(viewModel: DeviceViewModel) {
                     .fillMaxWidth()
                     .padding(16.dp)
             )
-            Text(
-                "Calibration factor: $calibrationFactor",
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-                modifier = Modifier.padding(vertical = 16.dp)
-            )
+
         }
     }
 }

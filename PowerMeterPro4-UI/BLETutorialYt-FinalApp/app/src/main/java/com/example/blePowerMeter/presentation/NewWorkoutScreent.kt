@@ -13,9 +13,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color.Companion.Black
+import androidx.compose.ui.graphics.Color.Companion.Blue
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.font.FontWeight.Companion.Black
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -35,7 +37,7 @@ import kotlin.math.abs
 @Composable
 fun NewWorkoutScreen(viewModel: DeviceViewModel = hiltViewModel(), navController: NavController) {
     var isStarted by remember { mutableStateOf(false) }
-    var chartData by remember { mutableStateOf(emptyList<Float>()) }
+    var workoutData by remember { mutableStateOf(listOf<Float>()) }
 
     Column(Modifier.fillMaxSize()) {
         TopBar(navController)
@@ -64,13 +66,54 @@ fun NewWorkoutScreen(viewModel: DeviceViewModel = hiltViewModel(), navController
             }
         }
 
-        if (isStarted) {
-            chartData += viewModel.force
-
+        if (workoutData.isNotEmpty()) {
+            WorkoutLineChart(
+                data = workoutData,
+                modifier = Modifier
+                    .height(200.dp)
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            )
         }
-        LinearChart(dataValues = chartData)
     }
 }
+
+@Composable
+fun WorkoutLineChart(data: List<Float>, modifier: Modifier = Modifier) {
+    val maxValue = remember { data.maxOrNull() ?: 0f }
+    val canvasWidth = remember { mutableStateOf(0f) }
+
+    Canvas(modifier = modifier.onSizeChanged { canvasWidth.value = it.width.toFloat() }) {
+        val canvasHeight = size.height
+        val barWidth = canvasWidth.value / (data.size - 1)
+
+        // Draw the bars
+        data.forEachIndexed { index, value ->
+            val barHeight = (value / maxValue) * canvasHeight
+            drawRect(
+                color = Purple200,
+                topLeft = Offset(index * barWidth, canvasHeight - barHeight),
+                size = Size(barWidth, barHeight)
+            )
+        }
+
+        // Draw the axis
+        drawLine(
+            color = androidx.compose.ui.graphics.Color.Black,
+            start = Offset(0f, canvasHeight),
+            end = Offset(canvasWidth.value, canvasHeight),
+            strokeWidth = 2f
+        )
+        drawLine(
+            color = androidx.compose.ui.graphics.Color.Black,
+            start = Offset(0f, 0f),
+            end = Offset(0f, canvasHeight),
+            strokeWidth = 2f
+        )
+    }
+}
+
+
 @Composable
 fun LinearChart(
     modifier: Modifier = Modifier.fillMaxWidth().height(200.dp),
