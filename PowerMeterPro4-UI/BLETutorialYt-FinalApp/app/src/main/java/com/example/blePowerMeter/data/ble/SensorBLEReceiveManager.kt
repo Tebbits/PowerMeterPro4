@@ -23,33 +23,28 @@ import javax.inject.Inject
 class SensorBLEReceiveManager @Inject constructor(
     private val bluetoothAdapter: BluetoothAdapter, private val context: Context
 ) : SensorReceiveManager {
-    // Constants
-    val DEVICE_NAME = "BLE_Sensor"
-    val SENSOR_SERVICE_UIID = "19b10010-e8f2-537e-4f6c-d104768a1214"
-    val SENSOR_CHARACTERISTICS_UUID = "19b10011-e8f2-537e-4f6c-d104768a1214"
 
-    // MutableSharedFlow for emitting sensor data
+    val DEVICE_NAME = "Power Meter"
+    val SENSOR_SERVICE_UUID = "19b10010-e8f2-537e-4f6c-d104768a1214"
+    val FORCE_CHARACTERISTICS_UUID = "19b10012-e8f2-537e-4f6c-d104768a1214"
+    val ANGLE_CHARACTERISTICS_UUID = "19b10013-e8f2-537e-4f6c-d104768a1214"
+    val CADENCE_CHARACTERISTICS_UUID = "19b10011-e8f2-537e-4f6c-d104768a1214"
+
     override val data: MutableSharedFlow<Resource<SensorResult>> = MutableSharedFlow()
 
-    // Bluetooth scanner
     private val bleScanner by lazy {
         bluetoothAdapter.bluetoothLeScanner
     }
 
-    // Scan settings for Bluetooth scanning
     private val scanSettings =
         ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build()
 
-    // BluetoothGatt instance for device connection
     private var gatt: BluetoothGatt? = null
 
-    // Flag to track scanning status
     private var isScanning = false
 
-    // Coroutine scope for launching coroutines
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
 
-    // Scan callback for handling scan results
     private val scanCallback = object : ScanCallback() {
 
         override fun onScanResult(callbackType: Int, result: ScanResult) {
@@ -66,14 +61,10 @@ class SensorBLEReceiveManager @Inject constructor(
         }
     }
 
-    // Variables for connection attempts
     private var currentConnectionAttempt = 1
     private var MAXIMUM_CONNECTION_ATTEMPTS = 5
 
-    // BluetoothGattCallback for handling connection state changes and data
     private val gattCallback = object : BluetoothGattCallback() {
-
-
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
@@ -83,7 +74,6 @@ class SensorBLEReceiveManager @Inject constructor(
                     gatt.discoverServices()
                     this@SensorBLEReceiveManager.gatt = gatt
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                    // Emit sensor result indicating disconnection
                     coroutineScope.launch {
                         data.emit(
                             Resource.Success(
@@ -96,7 +86,6 @@ class SensorBLEReceiveManager @Inject constructor(
                     gatt.close()
                 }
             } else {
-                // Handle connection failure and attempt reconnection
                 gatt.close()
                 currentConnectionAttempt += 1
                 coroutineScope.launch {
@@ -109,7 +98,6 @@ class SensorBLEReceiveManager @Inject constructor(
                 if (currentConnectionAttempt <= MAXIMUM_CONNECTION_ATTEMPTS) {
                     startReceiving()
                 } else {
-                    // Emit error message if maximum connection attempts exceeded
                     coroutineScope.launch {
                         data.emit(Resource.Error(errorMessage = "Could not connect to BLE device"))
                     }
@@ -118,9 +106,7 @@ class SensorBLEReceiveManager @Inject constructor(
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
-
             with(gatt) {
-
                 printGattTable()
                 coroutineScope.launch {
                     data.emit(Resource.Loading(message = "Adjusting MTU space..."))
@@ -129,50 +115,69 @@ class SensorBLEReceiveManager @Inject constructor(
             }
         }
 
-        // Handle MTU (Maximum Transmission Unit) change event
-        override fun onMtuChanged(gatt: BluetoothGatt?, mtu: Int, status: Int) {
 
-            val characteristic =
-                findCharacteristics(SENSOR_SERVICE_UIID, SENSOR_CHARACTERISTICS_UUID)
-            if (characteristic == null) {
-                // Emit error message if the sensor publisher characteristic is not found
+        override fun onMtuChanged(gatt: BluetoothGatt?, mtu: Int, status: Int) {
+            val characteristics = findCharacteristics(
+                FORCE_CHARACTERISTICS_UUID, ANGLE_CHARACTERISTICS_UUID, CADENCE_CHARACTERISTICS_UUID
+            )
+            if (characteristics.isNullOrEmpty()) {
                 coroutineScope.launch {
                     data.emit(Resource.Error(errorMessage = "Could not find sensor publisher"))
                 }
                 return
             }
-            enableNotification(characteristic)
+            characteristics.forEach { characteristic ->
+                enableNotification(characteristic)
+            }
         }
 
-        // Handle characteristic changed event
         override fun onCharacteristicChanged(
-            gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic
+            gatt: BluetoothGatt,
+            characteristic: BluetoothGattCharacteristic
         ) {
-
+            var force = 0
+            var angle = 0
+            var cadence = 0
             with(characteristic) {
                 when (uuid) {
-                    UUID.fromString(SENSOR_CHARACTERISTICS_UUID) -> {
-                        // Parse the received sensor data
+                    UUID.fromString(FORCE_CHARACTERISTICS_UUID) -> {
+                        // Handle force characteristic notification
                         val rawData = characteristic.value
-                        val force = rawData[1].toFloat()
-                        val angle = 13f
-                        val acceleration = 13f
-                        // Create a SensorResult object with the parsed data
-                        val sensorResult = SensorResult(
-                            force, angle, acceleration, ConnectionState.Connected
-                        )
-                        // Emit the sensor result
-                        coroutineScope.launch {
-                            data.emit(Resource.Success(data = sensorResult))
-                        }
+                        force =
+                            (rawData[0].toInt() and 0xFF) or ((rawData[1].toInt() and 0xFF) shl 8)
+                        Log.d("force", "$force")
+                    }
+                    UUID.fromString(ANGLE_CHARACTERISTICS_UUID) -> {
+                        // Handle angle characteristic notification
+                        val rawData = characteristic.value
+                        angle =
+                            (rawData[0].toInt() and 0xFF) or ((rawData[1].toInt() and 0xFF) shl 8)
+                        Log.d("angle", "$angle")
+                    }
+                    UUID.fromString(CADENCE_CHARACTERISTICS_UUID) -> {
+                        // Handle cadence characteristic notification
+                        val rawData = characteristic.value
+                        cadence =
+                            (rawData[0].toInt() and 0xFF) or ((rawData[1].toInt() and 0xFF) shl 8)
+                        Log.d("cadence", "$cadence")
                     }
                     else -> Unit
                 }
             }
+            val sensorResult = SensorResult(
+                force.toFloat(), angle.toFloat(), cadence.toFloat(), ConnectionState.Connected
+            )
+            coroutineScope.launch {
+                data.emit(Resource.Success(data = sensorResult))
+            }
         }
 
 
+
+        // Other methods and helper functions...
+
     }
+
 
     private fun enableNotification(characteristic: BluetoothGattCharacteristic) {
 
@@ -211,15 +216,16 @@ class SensorBLEReceiveManager @Inject constructor(
     }
 
     // Find the BluetoothGattCharacteristic based on the service UUID and characteristic UUID
-    private fun findCharacteristics(
-        serviceUUID: String, characteristicsUUID: String
-    ): BluetoothGattCharacteristic? {
-        return gatt?.services?.find { service ->
-            service.uuid.toString() == serviceUUID
-        }?.characteristics?.find { characteristics ->
-            characteristics.uuid.toString() == characteristicsUUID
+    private fun findCharacteristics(vararg characteristicsUUIDs: String): List<BluetoothGattCharacteristic>? {
+        return gatt?.services?.flatMap { service ->
+            characteristicsUUIDs.mapNotNull { characteristicsUUID ->
+                service.characteristics?.find { characteristic ->
+                    characteristic.uuid.toString() == characteristicsUUID
+                }
+            }
         }
     }
+
 
     // Start receiving sensor data by initiating the BLE device scan
     override fun startReceiving() {
@@ -241,9 +247,9 @@ class SensorBLEReceiveManager @Inject constructor(
 
     override fun closeConnection() {
         bleScanner.stopScan(scanCallback)
-        val characteristic = findCharacteristics(SENSOR_SERVICE_UIID, SENSOR_CHARACTERISTICS_UUID)
+        val characteristic = findCharacteristics(SENSOR_SERVICE_UUID, FORCE_CHARACTERISTICS_UUID)
         if (characteristic != null) {
-            disconnectCharacteristic(characteristic)
+            return
         }
         gatt?.close()
     }

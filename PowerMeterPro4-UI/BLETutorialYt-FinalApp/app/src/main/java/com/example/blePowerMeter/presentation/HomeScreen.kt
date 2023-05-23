@@ -54,7 +54,7 @@ fun HomeScreen(
                         color = Teal200,
                         name = "New Workout",
                         icon = Icons.Outlined.Star,
-                        screen = Screen.NewWorkoutScreen
+                        screen = Screen.StartScreen
                     )
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
