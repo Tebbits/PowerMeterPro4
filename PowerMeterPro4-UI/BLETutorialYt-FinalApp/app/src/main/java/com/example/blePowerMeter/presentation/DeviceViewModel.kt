@@ -1,6 +1,8 @@
 package com.example.blePowerMeter.presentation
 
+import android.util.Log
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.LiveData
@@ -39,6 +41,24 @@ class DeviceViewModel @Inject constructor(
 
     var connectionState by mutableStateOf<ConnectionState>(ConnectionState.Uninitialized)
 
+    private val _forceData = mutableStateListOf<Float>()
+    val forceData: List<Float> get() = _forceData
+    private var averagedForceData = mutableStateListOf<Float>()
+    val averageForce: List<Float> get() = averagedForceData
+
+    // Function to update the forceData list
+    fun addSensorData(value: Float) {
+        _forceData.add(value)
+    }
+    private fun calculateAverageForce(n: Int) {
+        val lastTenForceData = forceData.takeLast(n)
+        if (lastTenForceData.isNotEmpty()) {
+
+            val averageForce = lastTenForceData.sum() / lastTenForceData.size
+            averagedForceData.add(averageForce)
+            Log.d("LOG", "$averageForce")
+        }
+    }
 
     private fun subscribeToChanges(){
         viewModelScope.launch {
@@ -49,6 +69,8 @@ class DeviceViewModel @Inject constructor(
                         angle = result.data.angle
                         cadence = result.data.cadence
                         connectionState = result.data.connectionState
+                        addSensorData(force)
+                        calculateAverageForce(n=10)
 
                     }
 
@@ -99,5 +121,7 @@ class DeviceViewModel @Inject constructor(
         }
     }
 
-}
+init {
+    subscribeToChanges()}}
+
 

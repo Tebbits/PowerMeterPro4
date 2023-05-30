@@ -53,7 +53,7 @@ class SensorBLEReceiveManager @Inject constructor(
                     data.emit(Resource.Loading(message = "Connecting to device..."))
                 }
                 if (isScanning) {
-                    result.device.connectGatt(context, false, gattCallback)
+                    result.device.connectGatt(context, false, gattCallback,BluetoothDevice.TRANSPORT_LE)
                     isScanning = false
                     bleScanner.stopScan(this)
                 }
@@ -117,18 +117,22 @@ class SensorBLEReceiveManager @Inject constructor(
 
 
         override fun onMtuChanged(gatt: BluetoothGatt?, mtu: Int, status: Int) {
-            val characteristics = findCharacteristics(
-                FORCE_CHARACTERISTICS_UUID, ANGLE_CHARACTERISTICS_UUID, CADENCE_CHARACTERISTICS_UUID
-            )
-            if (characteristics.isNullOrEmpty()) {
+            val force_characteristic = findCharacteristics(SENSOR_SERVICE_UUID,
+                FORCE_CHARACTERISTICS_UUID)
+            val angle_characteristic = findCharacteristics(SENSOR_SERVICE_UUID,
+                ANGLE_CHARACTERISTICS_UUID)
+            val cadence_characteristic = findCharacteristics(SENSOR_SERVICE_UUID,
+                CADENCE_CHARACTERISTICS_UUID)
+            if (force_characteristic== null || angle_characteristic == null || cadence_characteristic == null) {
                 coroutineScope.launch {
                     data.emit(Resource.Error(errorMessage = "Could not find sensor publisher"))
                 }
                 return
             }
-            characteristics.forEach { characteristic ->
-                enableNotification(characteristic)
-            }
+            enableNotification(force_characteristic)
+            enableNotification(angle_characteristic)
+            enableNotification(cadence_characteristic)
+
         }
 
         override fun onCharacteristicChanged(
@@ -138,8 +142,11 @@ class SensorBLEReceiveManager @Inject constructor(
             var force = 0
             var angle = 0
             var cadence = 0
+
+            // Log.d("LOG","characteristic $characteristic")
             with(characteristic) {
                 when (uuid) {
+
                     UUID.fromString(FORCE_CHARACTERISTICS_UUID) -> {
                         // Handle force characteristic notification
                         val rawData = characteristic.value
@@ -154,6 +161,7 @@ class SensorBLEReceiveManager @Inject constructor(
                             (rawData[0].toInt() and 0xFF) or ((rawData[1].toInt() and 0xFF) shl 8)
                         Log.d("angle", "$angle")
                     }
+
                     UUID.fromString(CADENCE_CHARACTERISTICS_UUID) -> {
                         // Handle cadence characteristic notification
                         val rawData = characteristic.value
@@ -167,14 +175,11 @@ class SensorBLEReceiveManager @Inject constructor(
             val sensorResult = SensorResult(
                 force.toFloat(), angle.toFloat(), cadence.toFloat(), ConnectionState.Connected
             )
+
             coroutineScope.launch {
                 data.emit(Resource.Success(data = sensorResult))
             }
         }
-
-
-
-        // Other methods and helper functions...
 
     }
 
@@ -216,13 +221,11 @@ class SensorBLEReceiveManager @Inject constructor(
     }
 
     // Find the BluetoothGattCharacteristic based on the service UUID and characteristic UUID
-    private fun findCharacteristics(vararg characteristicsUUIDs: String): List<BluetoothGattCharacteristic>? {
-        return gatt?.services?.flatMap { service ->
-            characteristicsUUIDs.mapNotNull { characteristicsUUID ->
-                service.characteristics?.find { characteristic ->
-                    characteristic.uuid.toString() == characteristicsUUID
-                }
-            }
+    private fun findCharacteristics(serviceUUID: String, characteristicsUUID:String):BluetoothGattCharacteristic?{
+        return gatt?.services?.find { service ->
+            service.uuid.toString() == serviceUUID
+        }?.characteristics?.find { characteristics ->
+            characteristics.uuid.toString() == characteristicsUUID
         }
     }
 

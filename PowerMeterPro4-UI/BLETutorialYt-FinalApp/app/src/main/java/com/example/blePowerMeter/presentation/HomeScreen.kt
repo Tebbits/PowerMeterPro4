@@ -52,7 +52,7 @@ fun HomeScreen(
                     Button(
                         navController = navController,
                         color = Teal200,
-                        name = "New Workout",
+                        name = "Start",
                         icon = Icons.Outlined.Star,
                         screen = Screen.StartScreen
                     )
@@ -64,6 +64,29 @@ fun HomeScreen(
                         name = "Device",
                         icon = Icons.Outlined.Settings,
                         screen = Screen.SensorScreen
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Button(
+                        navController = navController,
+                        color = Teal200,
+                        name = "New Workout",
+                        icon = Icons.Outlined.Star,
+                        screen = Screen.NewWorkoutScreen
+                    )
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Button(
+                        navController = navController,
+                        color = Teal200,
+                        name = "Home",
+                        icon = Icons.Outlined.Settings,
+                        screen = Screen.HomeScreen
                     )
                 }
             }

@@ -45,7 +45,7 @@ fun DeviceScreen(
     SystemBroadcastReceiver(systemAction = BluetoothAdapter.ACTION_STATE_CHANGED) { bluetoothState ->
         val action = bluetoothState?.action ?: return@SystemBroadcastReceiver
         if (action == BluetoothAdapter.ACTION_STATE_CHANGED) {
-            onBluetoothStateChanged()
+            onBluetoothStateChanged
         }
     }
 
@@ -174,7 +174,7 @@ fun DeviceScreen(
                                 style = MaterialTheme.typography.h6
                             )
                             Text(
-                                text = "Acceleration: ${viewModel.cadence}",
+                                text = "Cadence: ${viewModel.cadence}",
                                 style = MaterialTheme.typography.h6
                             )
                         }
