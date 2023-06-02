@@ -151,7 +151,7 @@ fun SensorScreen(
 
 
             SensorReading(
-                force = viewModel.force, angle = viewModel.angle, cadence = viewModel.cadence
+                force = viewModel.force, angle = viewModel.angle, velocity = viewModel.velocity
             )
             Box(
                 modifier = Modifier
@@ -174,7 +174,7 @@ fun SensorScreen(
 fun SensorReading(
     force: Float,
     angle: Float,
-    cadence: Float
+    velocity: Float
 ) {
     Box(
         modifier = Modifier
@@ -210,16 +210,16 @@ fun SensorReading(
                     )
                 Spacer(modifier = Modifier.width(10.dp))
                 SensorBox(
-                    measurement = angle,
+                    measurement = velocity,
                     color = Color(0xFF80CBC4),
-                    text = "Angle",
+                    text = "Velocity",
 
                     )
                 Spacer(modifier = Modifier.width(10.dp))
                 SensorBox(
-                    measurement = cadence,
+                    measurement = angle,
                     color = Color(0xFF4DB6AC),
-                    text = "Cadence",
+                    text = "angle",
 
                     )
             }

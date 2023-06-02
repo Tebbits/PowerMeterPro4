@@ -1,9 +1,13 @@
 package com.example.blePowerMeter.presentation
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -15,6 +19,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.blePowerMeter.presentation.permissions.SensorBox
+import com.example.blePowerMeter.presentation.permissions.SensorReading
+import com.example.blePowerMeter.ui.theme.Gray300
 import com.example.blePowerMeter.ui.theme.Purple500
 import com.example.blePowerMeter.ui.theme.Teal200
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -29,44 +36,111 @@ fun NewWorkoutScreen(viewModel: DeviceViewModel = hiltViewModel(), navController
     var isStarted by remember { mutableStateOf(false) }
     val forceData = viewModel.averageForce
 
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Gray300), contentAlignment = Alignment.TopStart
+    ) {
+        Column(Modifier.fillMaxSize()) {
+            TopBar(navController)
 
-    Column(Modifier.fillMaxSize()) {
-        TopBar(navController)
-
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Button(
-                onClick = {
-                    isStarted = true
-
-                },
-                enabled = !isStarted,
-                modifier = Modifier.weight(1f)
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
             ) {
-                Text("Start Workout")
+                Button(
+                    onClick = {
+                        isStarted = true
+
+                    },
+                    enabled = !isStarted,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Start Workout")
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Button(
+                    onClick = { isStarted = false },
+                    enabled = isStarted,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Stop Workout")
+                }
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
 
-            Button(
-                onClick = { isStarted = false },
-                enabled = isStarted,
-                modifier = Modifier.weight(1f)
+
+            Box(
+                modifier = Modifier
+                    .padding(20.dp)
+                    .height(200.dp)
             ) {
-                Text("Stop Workout")
+                if (forceData.isNotEmpty()) {
+                    ForceChart(data = forceData)
+
+                }
             }
+
+            PowerBox(actual = viewModel.force, max = 100f, average = 50f)
         }
+    }
+}
 
+@Composable
+fun PowerBox(
+    actual: Float,
+    max: Float,
+    average: Float
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Gray300)
+            .padding(horizontal = 10.dp, vertical = 8.dp)
+            .border(3.dp, Teal200, RoundedCornerShape(10.dp))
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp)
 
+        ) {
+            Text(
+                text = "Power Measurement",
+                style = MaterialTheme.typography.h6,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 5.dp)
+            )
 
-        Box(modifier = Modifier.padding(20.dp)
-            .height(200.dp)) {
-            if (forceData.isNotEmpty()) {
-                ForceChart(data = forceData)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                SensorBox(
+                    measurement = actual,
+                    color = Color(0xFFB2DFDB),
+                    text = "Actual",
 
+                    )
+                Spacer(modifier = Modifier.width(10.dp))
+                SensorBox(
+                    measurement = max,
+                    color = Color(0xFF80CBC4),
+                    text = "Max",
+
+                    )
+                Spacer(modifier = Modifier.width(10.dp))
+                SensorBox(
+                    measurement = average,
+                    color = Color(0xFF4DB6AC),
+                    text = "Average",
+
+                    )
             }
         }
     }
@@ -90,7 +164,7 @@ fun ForceChart(data: List<Float>) {
             drawPath(
                 path = linePath,
                 color = Purple500,
-                style = Stroke(width = 1f)
+                style = Stroke(width = 2f)
             )
         }
     } else {

@@ -12,6 +12,9 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -52,8 +55,8 @@ fun HomeScreen(
                     Button(
                         navController = navController,
                         color = Teal200,
-                        name = "Start",
-                        icon = Icons.Outlined.Star,
+                        name = "Device",
+                        icon = Icons.Outlined.Settings,
                         screen = Screen.StartScreen
                     )
                 }
@@ -61,12 +64,13 @@ fun HomeScreen(
                     Button(
                         navController = navController,
                         color = Teal200,
-                        name = "Device",
-                        icon = Icons.Outlined.Settings,
-                        screen = Screen.SensorScreen
+                        name = "New Workout",
+                        icon = Icons.Default.Add,
+                        screen = Screen.NewWorkoutScreen
                     )
                 }
             }
+            Spacer(modifier = Modifier.height(50.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
@@ -75,9 +79,9 @@ fun HomeScreen(
                     Button(
                         navController = navController,
                         color = Teal200,
-                        name = "New Workout",
-                        icon = Icons.Outlined.Star,
-                        screen = Screen.NewWorkoutScreen
+                        name = "Info",
+                        icon = Icons.Default.Info,
+                        screen = Screen.HomeScreen
                     )
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {

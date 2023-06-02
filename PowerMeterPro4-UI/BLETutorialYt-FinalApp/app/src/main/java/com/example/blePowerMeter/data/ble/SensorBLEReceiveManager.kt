@@ -26,9 +26,8 @@ class SensorBLEReceiveManager @Inject constructor(
 
     val DEVICE_NAME = "Power Meter"
     val SENSOR_SERVICE_UUID = "19b10010-e8f2-537e-4f6c-d104768a1214"
-    val FORCE_CHARACTERISTICS_UUID = "19b10012-e8f2-537e-4f6c-d104768a1214"
-    val ANGLE_CHARACTERISTICS_UUID = "19b10013-e8f2-537e-4f6c-d104768a1214"
-    val CADENCE_CHARACTERISTICS_UUID = "19b10011-e8f2-537e-4f6c-d104768a1214"
+    val SENSOR_CHARACTERISTICS_UUID = "19b10012-e8f2-537e-4f6c-d104768a1214"
+
 
     override val data: MutableSharedFlow<Resource<SensorResult>> = MutableSharedFlow()
 
@@ -117,21 +116,17 @@ class SensorBLEReceiveManager @Inject constructor(
 
 
         override fun onMtuChanged(gatt: BluetoothGatt?, mtu: Int, status: Int) {
-            val force_characteristic = findCharacteristics(SENSOR_SERVICE_UUID,
-                FORCE_CHARACTERISTICS_UUID)
-            val angle_characteristic = findCharacteristics(SENSOR_SERVICE_UUID,
-                ANGLE_CHARACTERISTICS_UUID)
-            val cadence_characteristic = findCharacteristics(SENSOR_SERVICE_UUID,
-                CADENCE_CHARACTERISTICS_UUID)
-            if (force_characteristic== null || angle_characteristic == null || cadence_characteristic == null) {
+            val sensorCharacteristic = findCharacteristics(SENSOR_SERVICE_UUID,
+                SENSOR_CHARACTERISTICS_UUID)
+
+            if (sensorCharacteristic== null) {
                 coroutineScope.launch {
                     data.emit(Resource.Error(errorMessage = "Could not find sensor publisher"))
                 }
                 return
             }
-            enableNotification(force_characteristic)
-            enableNotification(angle_characteristic)
-            enableNotification(cadence_characteristic)
+            enableNotification(sensorCharacteristic)
+
 
         }
 
@@ -141,47 +136,36 @@ class SensorBLEReceiveManager @Inject constructor(
         ) {
             var force = 0
             var angle = 0
-            var cadence = 0
+            var velocity = 0
 
             // Log.d("LOG","characteristic $characteristic")
             with(characteristic) {
                 when (uuid) {
-
-                    UUID.fromString(FORCE_CHARACTERISTICS_UUID) -> {
+                    UUID.fromString(SENSOR_CHARACTERISTICS_UUID) -> {
                         // Handle force characteristic notification
                         val rawData = characteristic.value
                         force =
                             (rawData[0].toInt() and 0xFF) or ((rawData[1].toInt() and 0xFF) shl 8)
-                        Log.d("force", "$force")
-                    }
-                    UUID.fromString(ANGLE_CHARACTERISTICS_UUID) -> {
-                        // Handle angle characteristic notification
-                        val rawData = characteristic.value
+                        velocity =
+                            (rawData[2].toInt() and 0xFF) or ((rawData[3].toInt() and 0xFF) shl 8)
                         angle =
-                            (rawData[0].toInt() and 0xFF) or ((rawData[1].toInt() and 0xFF) shl 8)
+                            (rawData[4].toInt() and 0xFF) or ((rawData[5].toInt() and 0xFF) shl 8)
+                        Log.d("force", "$force")
+                        Log.d("velocity", "$velocity")
                         Log.d("angle", "$angle")
                     }
 
-                    UUID.fromString(CADENCE_CHARACTERISTICS_UUID) -> {
-                        // Handle cadence characteristic notification
-                        val rawData = characteristic.value
-                        cadence =
-                            (rawData[0].toInt() and 0xFF) or ((rawData[1].toInt() and 0xFF) shl 8)
-                        Log.d("cadence", "$cadence")
-                    }
                     else -> Unit
                 }
             }
             val sensorResult = SensorResult(
-                force.toFloat(), angle.toFloat(), cadence.toFloat(), ConnectionState.Connected
+                force.toFloat(), velocity.toFloat(), angle.toFloat(), ConnectionState.Connected
             )
 
             coroutineScope.launch {
                 data.emit(Resource.Success(data = sensorResult))
             }
-        }
-
-    }
+        }}
 
 
     private fun enableNotification(characteristic: BluetoothGattCharacteristic) {
@@ -250,7 +234,7 @@ class SensorBLEReceiveManager @Inject constructor(
 
     override fun closeConnection() {
         bleScanner.stopScan(scanCallback)
-        val characteristic = findCharacteristics(SENSOR_SERVICE_UUID, FORCE_CHARACTERISTICS_UUID)
+        val characteristic = findCharacteristics(SENSOR_SERVICE_UUID, SENSOR_CHARACTERISTICS_UUID)
         if (characteristic != null) {
             return
         }

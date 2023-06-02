@@ -36,7 +36,7 @@ class DeviceViewModel @Inject constructor(
 
     var angle by mutableStateOf(0f)
         private set
-    var cadence by mutableStateOf(0f)
+    var velocity by mutableStateOf(0f)
         private set
 
     var connectionState by mutableStateOf<ConnectionState>(ConnectionState.Uninitialized)
@@ -67,7 +67,7 @@ class DeviceViewModel @Inject constructor(
                     is Resource.Success -> {
                         force = result.data.force
                         angle = result.data.angle
-                        cadence = result.data.cadence
+                        velocity = result.data.velocity
                         connectionState = result.data.connectionState
                         addSensorData(force)
                         calculateAverageForce(n=10)
