@@ -174,7 +174,7 @@ fun DeviceScreen(
                                 style = MaterialTheme.typography.h6
                             )
                             Text(
-                                text = "Acceleration: ${viewModel.cadence}",
+                                text = "Cadence: ${viewModel.cadence}",
                                 style = MaterialTheme.typography.h6
                             )
                         }

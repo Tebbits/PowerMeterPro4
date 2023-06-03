@@ -5,7 +5,6 @@ import android.bluetooth.*
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
-import android.content.ContentValues.TAG
 import android.content.Context
 import android.util.Log
 import com.example.blePowerMeter.data.ConnectionState
@@ -104,6 +103,7 @@ class SensorBLEReceiveManager @Inject constructor(
                 }
             }
         }
+
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
             with(gatt) {
