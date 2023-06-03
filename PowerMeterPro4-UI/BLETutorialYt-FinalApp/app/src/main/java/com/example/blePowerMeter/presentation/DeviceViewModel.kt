@@ -56,7 +56,7 @@ class DeviceViewModel @Inject constructor(
 
             val averageForce = lastTenForceData.sum() / lastTenForceData.size
             averagedForceData.add(averageForce)
-            Log.d("LOG", "$averageForce")
+
         }
     }
 

@@ -40,7 +40,7 @@ fun StartScreen(
                         .clip(RoundedCornerShape(size = 16.dp,))
                         .background(Teal200, RoundedCornerShape(size = 16.dp,))
                         .clickable {
-                            navController.navigate(Screen.SensorScreen.route) {
+                            navController.navigate(Screen.DeviceScreen.route) {
                                 popUpTo(Screen.StartScreen.route) {
                                     inclusive = true
                                 }
