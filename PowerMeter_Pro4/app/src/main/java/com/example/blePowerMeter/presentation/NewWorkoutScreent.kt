@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.blePowerMeter.presentation.permissions.SensorReading
+
 import com.example.blePowerMeter.ui.theme.*
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import kotlinx.coroutines.Dispatchers
@@ -92,23 +92,23 @@ fun NewWorkoutScreen(viewModel: DeviceViewModel = hiltViewModel(), navController
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(
-                            text = "Velocity",
+                            text = "Cadence",
                             style = MaterialTheme.typography.h6,
                             color = Color.White
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         SensorBox(
-                            measurement = viewModel.velocity, textColor = textColor, text = "Now"
+                            measurement = viewModel.cadence, textColor = textColor, text = "Now"
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         SensorBox(
-                            measurement = viewModel.maxVelocity.toInt(),
+                            measurement = viewModel.maxCadence.toInt(),
                             textColor = textColor,
                             text = "Max"
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         SensorBox(
-                            measurement = viewModel.totalAverageVelocity.toInt(),
+                            measurement = viewModel.totalAverageCadence.toInt(),
                             textColor = textColor,
                             text = "Avg"
                         )
@@ -139,88 +139,6 @@ fun NewWorkoutScreen(viewModel: DeviceViewModel = hiltViewModel(), navController
                     )
                 }
             }
-        }
-    }
-}
-@Composable
-fun LineChart(
-    data: List<Float>,
-    lineColor: Color,
-    title: String,
-    textColor: Color
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(250.dp)
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.h6,
-            color = textColor,
-            modifier = Modifier.padding(8.dp)
-        )
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .padding(top = 30.dp) // Increase top padding to create space for the title
-        ) {
-            if (data.isNotEmpty()) {
-                val maxX = data.size.toFloat()
-                val maxY = data.maxOrNull() ?: 0f
-
-                Canvas(modifier = Modifier.fillMaxSize()) {
-                    val linePath = Path()
-                    linePath.moveTo(0f, size.height)
-                    for (i in 0 until data.size) {
-                        val x = i * size.width / (maxX - 1)
-                        val y = size.height - data[i] * size.height / maxY
-                        linePath.lineTo(x, y)
-                    }
-
-                    drawPath(
-                        path = linePath,
-                        color = lineColor,
-                        style = Stroke(width = 2f)
-                    )
-                }
-            }
-        }
-    }
-}
-
-
-@Composable
-fun SensorBox(
-    measurement: Int, textColor: Color, text: String
-) {
-    val background = Color(0xFF475162)
-
-    Box(
-        modifier = Modifier
-            .height(40.dp)
-            .width(120.dp)
-            .clip(RoundedCornerShape(10.dp))
-            .background(background)
-            .border(
-                BorderStroke(2.dp, Teal200), RoundedCornerShape(10.dp)
-            ), contentAlignment = Alignment.Center
-    ) {
-        Row(
-            modifier = Modifier.padding(4.dp), verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.subtitle1,
-                color = textColor,
-                modifier = Modifier.weight(1f)
-            )
-            Text(
-                text = measurement.toString(),
-                style = MaterialTheme.typography.h6,
-                color = textColor
-            )
         }
     }
 }

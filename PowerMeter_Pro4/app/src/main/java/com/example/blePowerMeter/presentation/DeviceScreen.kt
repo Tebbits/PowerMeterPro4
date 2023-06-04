@@ -169,12 +169,9 @@ fun DeviceScreen(
                                 text = "Force: ${viewModel.force}",
                                 style = MaterialTheme.typography.h6
                             )
+
                             Text(
-                                text = "Angle: ${viewModel.angle}",
-                                style = MaterialTheme.typography.h6
-                            )
-                            Text(
-                                text = "Velocity: ${viewModel.velocity}",
+                                text = "Cadence: ${viewModel.cadence}",
                                 style = MaterialTheme.typography.h6
                             )
                         }

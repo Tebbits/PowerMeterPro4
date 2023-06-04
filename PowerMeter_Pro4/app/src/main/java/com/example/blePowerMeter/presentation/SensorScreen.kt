@@ -27,9 +27,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.example.blePowerMeter.data.ConnectionState
-import com.example.blePowerMeter.presentation.DeviceViewModel
-import com.example.blePowerMeter.presentation.LineChart
-import com.example.blePowerMeter.presentation.TopBar
+import com.example.blePowerMeter.presentation.*
 import com.example.blePowerMeter.ui.theme.*
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
@@ -112,28 +110,25 @@ fun SensorScreen(
                     .height(80.dp)
                     .padding(10.dp)
                     .background(background1)
-                    .border(
-                        BorderStroke(3.dp, background2), RoundedCornerShape(10.dp)
-                    )
+                    .border(BorderStroke(2.dp, background2), RoundedCornerShape(10.dp)),
+                contentAlignment = Alignment.CenterStart
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxSize()
                 ) {
                     Text(
-                        text = "Device connection",
+                        text = "Device Connection:",
                         style = MaterialTheme.typography.h6,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(10.dp),
+                        modifier = Modifier.padding(start = 10.dp, end = 10.dp),
                         color = textColor
                     )
+                    Spacer(modifier = Modifier.width(40.dp))
                     when (viewModel.connectionState) {
                         ConnectionState.CurrentlyInitializing -> {
                             Text(
                                 text = "Connecting...",
                                 style = MaterialTheme.typography.body1,
-                                modifier = Modifier.padding(end = 16.dp),
                                 color = textColor
                             )
                         }
@@ -141,7 +136,6 @@ fun SensorScreen(
                             Text(
                                 text = "Connected",
                                 style = MaterialTheme.typography.body1,
-                                modifier = Modifier.padding(end = 16.dp),
                                 color = textColor
                             )
                         }
@@ -156,22 +150,22 @@ fun SensorScreen(
                 Spacer(modifier = Modifier.height(50.dp))
                 Box(
                     modifier = Modifier
-                        .size(250.dp, 200.dp)
-                        .aspectRatio(1f)
+                        .fillMaxWidth()
+                        .height(200.dp)
                         .background(background1)
+                        .padding(20.dp),
+                    contentAlignment = Alignment.Center
                 ) {
                     when (viewModel.connectionState) {
                         ConnectionState.CurrentlyInitializing -> {
                             Column(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxSize(),
                                 verticalArrangement = Arrangement.spacedBy(5.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 CircularProgressIndicator()
                                 viewModel.initializingMessage?.let {
-                                    Text(
-                                        text = it
-                                    )
+                                    Text(text = it, color = textColor)
                                 }
                             }
                         }
@@ -180,7 +174,6 @@ fun SensorScreen(
                                 Text(
                                     text = "Go to the app settings and allow the missing permissions.",
                                     style = MaterialTheme.typography.body2,
-                                    modifier = Modifier.padding(10.dp),
                                     textAlign = TextAlign.Center,
                                     color = textColor
                                 )
@@ -190,128 +183,76 @@ fun SensorScreen(
                                     verticalArrangement = Arrangement.Center,
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    Text(
-                                        text = viewModel.errorMessage!!, color = textColor
-                                    )
-                                    Button(onClick = {
-                                        if (permissionState.allPermissionsGranted) {
-                                            viewModel.initializeConnection()
+                                    Text(text = viewModel.errorMessage!!, color = textColor)
+                                    Button(
+                                        onClick = {
+                                            if (permissionState.allPermissionsGranted) {
+                                                viewModel.initializeConnection()
+                                            }
                                         }
-                                    }) {
-                                        Text(
-                                            "Try again", color = textColor
-                                        )
+                                    ) {
+                                        Text(text = "Try again", color = textColor)
                                     }
                                 }
                             }
                         }
-
                     }
                 }
             } else {
+                Box(
+                    modifier = Modifier
+                        .height(150.dp)
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(background1)
+                        .border(BorderStroke(2.dp, background2), RoundedCornerShape(16.dp)),
 
-                SensorReading(
-                    force = viewModel.force,
-                    angle = viewModel.angle,
-                    velocity = viewModel.velocity,
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Sensor Readings",
+                            style = MaterialTheme.typography.h6,
+                            color = textColor
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            SensorBox(
+                                measurement = viewModel.force,
+                                text = "Force",
+                                textColor = textColor
+                            )
+                            SensorBox(
+                                measurement = viewModel.cadence,
+                                text = "Cadence",
+                                textColor = textColor
+                            )
+                        }
+                    }
+                }
+
+                LineChart(
+                    data = viewModel.averageForce,
+                    lineColor = Teal200,
+                    title = "Force",
                     textColor = textColor,
-                    background = background1
+
                 )
 
-                    LineChart(data = viewModel.averageForce, lineColor = Teal200, title = "Force",textColor = textColor)
+                LineChart(
+                    data = viewModel.averageCadence,
+                    lineColor = Purple200,
+                    title = "Velocity",
+                    textColor = textColor,
 
-                LineChart(data = viewModel.averageVelocity, lineColor = Purple200, title = "Velocity",textColor = textColor )
-
-            }
-        }
-    }
-}
-@Composable
-fun SensorReading(
-    force: Int,
-    angle: Int,
-    velocity: Int,
-    textColor: Color,
-    background: Color
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(background)
-            .padding(horizontal = 10.dp, vertical = 8.dp)
-            .border(3.dp, background2, RoundedCornerShape(10.dp)),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            modifier = Modifier.padding(10.dp)
-        ) {
-            Text(
-                text = "Sensor Measurement",
-                style = MaterialTheme.typography.h6,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 5.dp),
-                color = textColor
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                SensorContainer(
-                    measurement = force,
-                    background = background,
-                    text = "Force",
-                    textColor = textColor
-                )
-                SensorContainer(
-                    measurement = velocity,
-                    background = background,
-                    text = "Velocity",
-                    textColor = textColor
-                )
-                SensorContainer(
-                    measurement = angle,
-                    background = background,
-                    text = "Angle",
-                    textColor = textColor
                 )
             }
         }
-    }
-}
-
-@Composable
-fun SensorContainer(
-    measurement: Int,
-    background: Color,
-    text: String,
-    textColor: Color
-) {
-    Box(
-        modifier = Modifier
-            .width(80.dp)
-            .height(60.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(background)
-            .border(2.dp, Teal200, RoundedCornerShape(8.dp)),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.subtitle2,
-                color = textColor
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = measurement.toString(),
-                style = MaterialTheme.typography.body1,
-                color = textColor
-            )
-        }
-    }
-}
+    }}

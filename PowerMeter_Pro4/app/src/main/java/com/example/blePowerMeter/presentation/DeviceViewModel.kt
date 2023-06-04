@@ -35,10 +35,9 @@ class DeviceViewModel @Inject constructor(
     var force by mutableStateOf(0)
         private set
 
-    var angle by mutableStateOf(0)
+    var cadence by mutableStateOf(0)
         private set
-    var velocity by mutableStateOf(0)
-        private set
+
 
     var connectionState by mutableStateOf<ConnectionState>(ConnectionState.Uninitialized)
 
@@ -47,10 +46,10 @@ class DeviceViewModel @Inject constructor(
     val maxForce: Float get() = forceData.getMaxData()
     val totalAverageForce: Float get() = forceData.getTotalAverageData()
 
-    private val velocityData = SensorDataList()
-    val averageVelocity: List<Float> get() = velocityData.getAverageData()
-    val maxVelocity: Float get() = velocityData.getMaxData()
-    val totalAverageVelocity: Float get() = velocityData.getTotalAverageData()
+    private val cadenceData = SensorDataList()
+    val averageCadence: List<Float> get() = cadenceData.getAverageData()
+    val maxCadence: Float get() = cadenceData.getMaxData()
+    val totalAverageCadence: Float get() = cadenceData.getTotalAverageData()
 
     private fun addSensorData(value: Float, dataList: SensorDataList) {
         dataList.addData(value)
@@ -94,11 +93,10 @@ class DeviceViewModel @Inject constructor(
                 when(result){
                     is Resource.Success -> {
                         force = result.data.force
-                        angle = result.data.angle
-                        velocity = result.data.velocity
+                        cadence = result.data.cadence
                         connectionState = result.data.connectionState
                         forceData.addData(force.toFloat())
-                        velocityData.addData(velocity.toFloat())
+                        cadenceData.addData(cadence.toFloat())
 
 
                     }

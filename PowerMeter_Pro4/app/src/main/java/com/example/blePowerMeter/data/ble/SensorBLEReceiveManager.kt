@@ -77,7 +77,7 @@ class SensorBLEReceiveManager @Inject constructor(
                         data.emit(
                             Resource.Success(
                                 data = SensorResult(
-                                    0, 0, 0, ConnectionState.Disconnected
+                                    0, 0,  ConnectionState.Disconnected
                                 )
                             )
                         )
@@ -140,7 +140,7 @@ class SensorBLEReceiveManager @Inject constructor(
         ) {
             var force = 0
             var angle = 0
-            var velocity = 0
+
 
             // Log.d("LOG","characteristic $characteristic")
             with(characteristic) {
@@ -149,26 +149,23 @@ class SensorBLEReceiveManager @Inject constructor(
                         // Handle force characteristic notification
                         val rawData = characteristic.value
                         // Parsen der Daten für force
-                        force = (rawData[0].toInt() and 0xFF)
+                        force =
+                            (rawData[0].toInt() and 0xFF) or ((rawData[1].toInt() and 0xFF) shl 8)
 
-                        // Parsen der Daten für velocity
-                        angle = (rawData[1].toInt() and 0xFF)
-
-                        // Parsen der Daten für angle
-                        velocity = (rawData[2].toInt() and 0xFF) or ((rawData[3].toInt() and 0xFF) shl 8)
+                        // Parsing der Daten für angle
+                        angle =
+                            (rawData[2].toInt() and 0xFF) or ((rawData[3].toInt() and 0xFF) shl 8)
 
 
-                        Log.d("rawData",rawData.contentToString())
-                        Log.d("force", "$force")
-                        Log.d("velocity", "$velocity")
-                        Log.d("angle", "$angle")
+
+
                     }
 
                     else -> Unit
                 }
             }
             val sensorResult = SensorResult(
-                force, velocity, angle, ConnectionState.Connected
+                force,  angle, ConnectionState.Connected
             )
 
             coroutineScope.launch {
